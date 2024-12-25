@@ -27,8 +27,7 @@ describe("First test", () => {
   it("should correctly transform insert operation", () => {
     const ot = new OT("hello world")
 
-    // ot.processOperation(new Operation(OperationType.insert, 0, "hello world"))
-    let lastOp = ot.processOperation(new Operation(OperationType.insert, 5, " banana "))
+    ot.processOperation(new Operation(OperationType.insert, 5, " banana "))
 
     expect(ot.history.at(0)?.toJson()).toEqual({
       type: OperationType.insert,
@@ -43,13 +42,6 @@ describe("First test", () => {
       string: " banana "
     })
 
-    // hello world 0 
-    // hello| banana world 5
-    // hello| subscribe world 5
-    // hello banana world -> hello banana subscribe world
-    //       c    p   l
-    // 0 -> (5  + 0 + 11) = 16 - index (5)
-    // 5 -> (16 + 5 + 8) = 29 - index (13)
     ot.processOperation(new Operation(OperationType.insert, 5, "subscribe"))
 
     // 9 - (9 - 5) + length 5 + 8
@@ -61,4 +53,73 @@ describe("First test", () => {
 
     expect(ot.collapse()).toEqual("hello banana subscribe world")
   })
+
+  it("should correctly delete words", () => {
+    const ot = new OT("hello world")
+
+    // index: 5
+    ot.processOperation(new Operation(OperationType.delete, 4, "o"))
+    // hell world
+
+    expect(ot.history.at(-1)).toEqual({
+      type: OperationType.delete,
+      index: 4,
+      string: "o"
+    })
+
+
+    // hello world 0 
+    // hello| banana world 5
+    // hello| subscribe world 5
+    // hello banana world -> hello banana subscribe world
+    //       c    p   l
+    // 0 -> (5  + 0 + 11) = 16 - index (5)
+    // 5 -> (16 + 5 + 8) = 29 - index (13)
+    // 9 -> (16 + 5 + 8) = 29 - index (13)
+    ot.processOperation(new Operation(OperationType.delete, 9, "ld"))
+
+    expect(ot.history.at(-1)).toEqual({
+      type: OperationType.delete,
+      index: 8,
+      string: "ld"
+    })
+
+    expect(ot.collapse()).toEqual("hell wor")
+  })
+
+  it("should handle combination of insert and delete", () => {
+    const ot = new OT("hello world")
+
+    ot.processOperation(new Operation(OperationType.insert, 5, " banana"))
+    // hello banana world
+    expect(ot.collapse()).toEqual("hello banana world")
+    // hello banana wor
+    // 5 + 7 = 12
+    // 9 - 5 = 4
+    //
+    // 0 -> (5  + 0 + 11) = 16 - index (5)
+    // 5 -> (16 + 5 + 8) = 29 - index (13)
+    // 9 -> &o
+    ot.processOperation(new Operation(OperationType.delete, 9, "ld"))
+    expect(ot.history.at(-1)).toEqual({
+      type: OperationType.delete,
+      index: 16,
+      string: "ld"
+    })
+    // hello banana subscribe wor
+    ot.processOperation(new Operation(OperationType.insert, 5, " subscribe"))
+
+    expect(ot.collapse()).toEqual("hello banana subscribe wor")
+  })
 })
+
+
+// operations imagine
+//
+// hello world
+// insert " banana" at 5 
+// hello banana world
+// delete "ld" at 9 (transformed 16) 
+// 
+// insert " Thomas" at 4 (offset by 6 ->) 10 (offset by 4 <-) 6
+// hello world Thomas
