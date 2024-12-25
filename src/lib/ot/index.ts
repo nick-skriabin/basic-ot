@@ -14,6 +14,9 @@ export class OT {
     this.history.push(new Operation(type, index, string))
   }
 
+  toJson() {
+    return Array.from(this.history)
+  }
 
   processOperation(operation: Operation) {
     let newOperation = Operation.fromJson({ ...operation });
@@ -71,4 +74,8 @@ export class OT {
     return finalDocument
   }
 
+}
+
+export enum OTEvent {
+  load = "load"
 }
