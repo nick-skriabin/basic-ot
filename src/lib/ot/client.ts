@@ -1,21 +1,53 @@
-import { io, Socket } from "socket.io-client"
-import { OT, OTEvent } from "$lib/ot"
+import { OT, OTEvent, Operation } from "$lib/ot"
+import type { OperationRaw } from "./types"
+
+type WSEvent = {
+  type: OTEvent.load,
+  data: Operation[]
+} | {
+  type: OTEvent.operation
+  data: OperationRaw
+}
+
 export class OTClient {
-  socket: Socket
+  socket: WebSocket
   ot: OT
   constructor() {
     this.ot = new OT("")
-    this.socket = io("http://localhost:5454")
+    this.socket = new WebSocket("ws://localhost:5454")
 
-    this.socket.on("connect", () => {
-      console.log(this.socket.connected); // true
+    this.socket.addEventListener("open", () => {
+      this.socket.addEventListener("message", (event) => {
+        const data = JSON.parse(event.data)
+        this.processEvents(data)
+        
+      });
     });
+  }
 
-    this.socket.on("disconnect", () => {
-      console.log(this.socket.connected); // false
-    });
-    this.socket.on("event", () => {
-      console.log("hello"); // false
-    });
+  handleLoad(operations: Operation[]) {
+    for (const op of operations) {
+      this.ot.processOperation(op)
+    }
+  }
+
+  processEvents(event: WSEvent) {
+    switch (event.type) {
+      case OTEvent.load:
+        this.handleLoad(event.data)
+        break
+      case OTEvent.operation:
+        this.ot.push(Operation.fromJson(event.data))
+        break
+    }
+  }
+
+  add(op: OperationRaw) {
+    this.ot.processOperation(Operation.fromJson(op), { silent: true })
+    this.send(OTEvent.addOperation, op)
+  }
+
+  send(type: OTEvent, data: any) {
+    this.socket.send(JSON.stringify({ type, data }))
   }
 }

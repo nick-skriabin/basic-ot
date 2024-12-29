@@ -24,7 +24,7 @@
   },
   "type": "module",
   "dependencies": {
-    "socket.io": "^4.8.1",
-    "socket.io-client": "^4.8.1"
+    "@types/ws": "^8.5.13",
+    "ws": "^8.18.0"
   }
 }

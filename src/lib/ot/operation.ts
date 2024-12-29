@@ -15,7 +15,7 @@ export class Operation {
     this.string = string;
   }
 
-  toJson() {
+  toPOJO() {
     return {
       ...this,
     }

@@ -1,6 +1,7 @@
-import { Server } from "socket.io"
+import { WebSocketServer } from "ws"
 import http from "node:http"
 import { OT, OTEvent } from "../src/lib/ot"
+import { OTServerClient } from "./ot-server-client";
 
 const server = http.createServer((req, res) => {
   const headers = {
@@ -14,25 +15,9 @@ const server = http.createServer((req, res) => {
   res.end('Hello World');
 });
 
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST", "OPTIONS"]
-  }
-})
-
-const ot = new OT("something something something, we win")
-
-server.listen(5454)
-
-// io.on("connection", (socket) => {
-//   socket.broadcast.emit(OTEvent.load, JSON.stringify(ot.history))
-// })
-
-// server-side
-io.on("connection", (socket) => {
-  socket.emit("hello", 1, "2", { 3: '4', 5: Buffer.from([6]) });
-  socket.emit("event", "hello")
+const wss = new WebSocketServer({
+  port: 5454
 });
 
+new OTServerClient(wss)
 

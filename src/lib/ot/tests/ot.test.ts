@@ -29,7 +29,7 @@ describe("First test", () => {
 
     ot.processOperation(new Operation(OperationType.insert, 5, " banana "))
 
-    expect(ot.history.at(0)?.toJson()).toEqual({
+    expect(ot.history.at(0)?.toPOJO()).toEqual({
       type: OperationType.insert,
       index: 0,
       string: "hello world"
@@ -110,6 +110,18 @@ describe("First test", () => {
     ot.processOperation(new Operation(OperationType.insert, 5, " subscribe"))
 
     expect(ot.collapse()).toEqual("hello banana subscribe wor")
+  })
+
+  it("should support typing", () => {
+    const ot = new OT("something something something, we win")
+
+    const string = " world"
+    for(let char of string) {
+      const index = 9 + string.indexOf(char)
+      ot.processOperation(new Operation(OperationType.insert, index, char))
+    }
+
+    expect(ot.collapse()).toEqual("something world something something, we win")
   })
 })
 

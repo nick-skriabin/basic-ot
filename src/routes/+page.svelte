@@ -7,8 +7,6 @@
 
 <div class="container">
   <textarea use:useOT={{ ot }}></textarea>
-
-  <textarea use:useOT={{ ot }}></textarea>
 </div>
 
 <style>
